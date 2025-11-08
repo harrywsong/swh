@@ -37,10 +37,10 @@ class EventServiceApplicationTests {
         String eventDate = LocalDateTime.now().plusDays(7).toString();
         String requestBody = """
                 {
-                   "title": "Yoga Workshop",
-                   "description": "Beginner friendly yoga session",
+                   "title": "Test Workshop",
+                   "description": "Test Description",
                    "date": "%s",
-                   "location": "Main Campus",
+                   "location": "Test Location",
                    "capacity": 30
                 }
                 """.formatted(eventDate);
@@ -54,9 +54,9 @@ class EventServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.CREATED.value())
                 .body("eventId", Matchers.notNullValue())
-                .body("title", Matchers.equalTo("Yoga Workshop"))
-                .body("description", Matchers.equalTo("Beginner friendly yoga session"))
-                .body("location", Matchers.equalTo("Main Campus"))
+                .body("title", Matchers.equalTo("Test Workshop"))
+                .body("description", Matchers.equalTo("Test Description"))
+                .body("location", Matchers.equalTo("Test Location"))
                 .body("capacity", Matchers.equalTo(30))
                 .body("registeredStudents", Matchers.equalTo(0));
     }
@@ -66,10 +66,10 @@ class EventServiceApplicationTests {
         String eventDate = LocalDateTime.now().plusDays(5).toString();
         String requestBody = """
                 {
-                   "title": "Mental Health Seminar",
-                   "description": "Understanding mental health",
+                   "title": "Test Seminar",
+                   "description": "Test Seminar Description",
                    "date": "%s",
-                   "location": "Building A",
+                   "location": "Test Location 123",
                    "capacity": 50
                 }
                 """.formatted(eventDate);
@@ -84,7 +84,7 @@ class EventServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.CREATED.value())
                 .body("eventId", Matchers.notNullValue())
-                .body("title", Matchers.equalTo("Mental Health Seminar"));
+                .body("title", Matchers.equalTo("Test Seminar"));
 
         // GET Events
         RestAssured.given()
@@ -95,7 +95,7 @@ class EventServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("title", Matchers.hasItem("Mental Health Seminar"))
+                .body("title", Matchers.hasItem("Test Seminar"))
                 .body("capacity", Matchers.hasItem(50));
     }
 
@@ -125,19 +125,19 @@ class EventServiceApplicationTests {
     @Test
     void updateEventTest() {
         Integer id = createEventAndReturnId(
-                "Meditation Session",
-                "Guided meditation",
-                "Wellness Center",
+                "New Event",
+                "New Description",
+                "New Location",
                 20
         );
 
         String eventDate = LocalDateTime.now().plusDays(10).toString();
         String updateBody = """
                 {
-                   "title": "Advanced Meditation Session",
-                   "description": "Advanced guided meditation",
+                   "title": "Updated Event",
+                   "description": "Updated Description",
                    "date": "%s",
-                   "location": "Wellness Center",
+                   "location": "Updated Location",
                    "capacity": 25
                 }
                 """.formatted(eventDate);
@@ -149,15 +149,15 @@ class EventServiceApplicationTests {
                 .put("/api/events/{id}", id)
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("title", Matchers.equalTo("Advanced Meditation Session"))
+                .body("title", Matchers.equalTo("Updated Event"))
                 .body("capacity", Matchers.equalTo(25));
     }
 
     @Test
     void registerStudentForEventTest() {
         Integer id = createEventAndReturnId(
-                "Mindfulness Workshop",
-                "Learn mindfulness techniques",
+                "Workshop 1",
+                "Workshop 1 Description",
                 "Room 101",
                 25
         );
@@ -182,8 +182,8 @@ class EventServiceApplicationTests {
     @Test
     void unregisterStudentFromEventTest() {
         Integer id = createEventAndReturnId(
-                "Stress Relief Workshop",
-                "Managing stress effectively",
+                "Workshop 2",
+                "Workshop 2 Description",
                 "Room 202",
                 15
         );
@@ -244,19 +244,19 @@ class EventServiceApplicationTests {
     @Test
     void getEventsByLocationTest() {
         createEventAndReturnId(
-                "Campus Wellness Day",
-                "All-day wellness activities",
-                "Student Center",
+                "Location Title",
+                "Location Description",
+                "Building 123",
                 100
         );
 
         RestAssured.given()
                 .when()
-                .get("/api/events/location/Student Center")
+                .get("/api/events/location/Building 123")
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("location", Matchers.hasItem("Student Center"));
+                .body("location", Matchers.hasItem("Building 123"));
     }
 }

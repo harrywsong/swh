@@ -37,11 +37,11 @@ class GoalTrackingServiceApplicationTests {
         String targetDate = LocalDate.now().plusMonths(1).toString();
         String requestBody = """
                 {
-                   "title": "Meditate Daily",
-                   "description": "Practice meditation for 10 minutes every morning",
+                   "title": "Test Title",
+                   "description": "Test Description",
                    "targetDate": "%s",
                    "status": "in-progress",
-                   "category": "mindfulness"
+                   "category": "Test Category"
                 }
                 """.formatted(targetDate);
 
@@ -54,10 +54,10 @@ class GoalTrackingServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.CREATED.value())
                 .body("goalId", Matchers.notNullValue())
-                .body("title", Matchers.equalTo("Meditate Daily"))
-                .body("description", Matchers.equalTo("Practice meditation for 10 minutes every morning"))
+                .body("title", Matchers.equalTo("Test Title"))
+                .body("description", Matchers.equalTo("Test Description"))
                 .body("status", Matchers.equalTo("in-progress"))
-                .body("category", Matchers.equalTo("mindfulness"));
+                .body("category", Matchers.equalTo("Test Category"));
     }
 
     @Test
@@ -65,11 +65,11 @@ class GoalTrackingServiceApplicationTests {
         String targetDate = LocalDate.now().plusWeeks(4).toString();
         String requestBody = """
                 {
-                   "title": "Exercise Weekly",
-                   "description": "Go to gym 3 times a week",
+                   "title": "New Title",
+                   "description": "New Description",
                    "targetDate": "%s",
                    "status": "in-progress",
-                   "category": "fitness"
+                   "category": "New Category"
                 }
                 """.formatted(targetDate);
 
@@ -83,7 +83,7 @@ class GoalTrackingServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.CREATED.value())
                 .body("goalId", Matchers.notNullValue())
-                .body("title", Matchers.equalTo("Exercise Weekly"));
+                .body("title", Matchers.equalTo("New Title"));
 
         // GET Goals
         RestAssured.given()
@@ -94,8 +94,8 @@ class GoalTrackingServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("title", Matchers.hasItem("Exercise Weekly"))
-                .body("category", Matchers.hasItem("fitness"));
+                .body("title", Matchers.hasItem("New Title"))
+                .body("category", Matchers.hasItem("New Category"));
     }
 
     @Test
@@ -103,11 +103,11 @@ class GoalTrackingServiceApplicationTests {
         String targetDate = LocalDate.now().plusWeeks(2).toString();
         String requestBody = """
                 {
-                   "title": "Sleep Better",
-                   "description": "Sleep 8 hours nightly",
+                   "title": "Second Title",
+                   "description": "Second Description",
                    "targetDate": "%s",
                    "status": "in-progress",
-                   "category": "sleep"
+                   "category": "Second Category"
                 }
                 """.formatted(targetDate);
 
@@ -121,12 +121,12 @@ class GoalTrackingServiceApplicationTests {
 
         RestAssured.given()
                 .when()
-                .get("/api/goals/category/sleep")
+                .get("/api/goals/category/Second Category")
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("category", Matchers.hasItem("sleep"));
+                .body("category", Matchers.hasItem("Second Category"));
     }
 
     @Test
@@ -134,11 +134,11 @@ class GoalTrackingServiceApplicationTests {
         String targetDate = LocalDate.now().plusDays(30).toString();
         String requestBody = """
                 {
-                   "title": "Healthy Eating",
-                   "description": "Eat 5 servings of vegetables daily",
+                   "title": "Third Title",
+                   "description": "Third Description",
                    "targetDate": "%s",
                    "status": "in-progress",
-                   "category": "nutrition"
+                   "category": "Third Category"
                 }
                 """.formatted(targetDate);
 
@@ -185,20 +185,20 @@ class GoalTrackingServiceApplicationTests {
     @Test
     void updateGoalTest() {
         String id = createGoalAndReturnId(
-                "Read Books",
-                "Read 1 book per month",
-                "personal-development",
+                "New Goal",
+                "New Description",
+                "New Category",
                 "in-progress"
         );
 
         String targetDate = LocalDate.now().plusMonths(2).toString();
         String updateBody = """
                 {
-                   "title": "Read More Books",
-                   "description": "Read 2 books per month",
+                   "title": "Updated Title",
+                   "description": "Updated Description",
                    "targetDate": "%s",
                    "status": "in-progress",
-                   "category": "personal-development"
+                   "category": "Updated Category"
                 }
                 """.formatted(targetDate);
 
@@ -209,16 +209,16 @@ class GoalTrackingServiceApplicationTests {
                 .put("/api/goals/{id}", id)
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("title", Matchers.equalTo("Read More Books"))
-                .body("description", Matchers.equalTo("Read 2 books per month"));
+                .body("title", Matchers.equalTo("Updated Title"))
+                .body("description", Matchers.equalTo("Updated Description"));
     }
 
     @Test
     void markGoalAsCompletedTest() {
         String id = createGoalAndReturnId(
-                "Morning Walk",
-                "Walk for 20 minutes every morning",
-                "fitness",
+                "Completed Goal",
+                "Completed Description",
+                "Completed Category",
                 "in-progress"
         );
 

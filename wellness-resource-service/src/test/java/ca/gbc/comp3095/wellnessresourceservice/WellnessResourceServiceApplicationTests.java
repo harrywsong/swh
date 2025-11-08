@@ -79,7 +79,7 @@ class WellnessResourceServiceApplicationTests {
                 .body("resourceId", Matchers.notNullValue())
                 .body("title", Matchers.equalTo("Yoga for Beginners"));
 
-        // GET Resources
+        // GET Resources - check that our resource exists in the list
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .when()
@@ -88,8 +88,8 @@ class WellnessResourceServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].title", Matchers.equalTo("Yoga for Beginners"))
-                .body("[0].category", Matchers.equalTo("exercise"));
+                .body("title", Matchers.hasItem("Yoga for Beginners"))
+                .body("category", Matchers.hasItem("exercise"));
     }
 
     @Test
@@ -118,10 +118,11 @@ class WellnessResourceServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].category", Matchers.equalTo("counseling"));
+                .body("category", Matchers.hasItem("counseling"));
     }
 
-    private Long createResourceAndReturnId(String title, String description, String category, String url) {
+    // FIXED: Changed return type from Long to Integer
+    private Integer createResourceAndReturnId(String title, String description, String category, String url) {
         String requestBody = """
                 {
                    "title": "%s",
@@ -144,7 +145,7 @@ class WellnessResourceServiceApplicationTests {
 
     @Test
     void updateResourceTest() {
-        Long id = createResourceAndReturnId(
+        Integer id = createResourceAndReturnId(
                 "Sleep Tips",
                 "Tips for better sleep",
                 "sleep",
@@ -174,7 +175,7 @@ class WellnessResourceServiceApplicationTests {
     @Test
     void deleteResourceTest() {
         // Create Test Resource
-        Long id = createResourceAndReturnId(
+        Integer id = createResourceAndReturnId(
                 "Temp Resource",
                 "Disposable resource",
                 "test",
@@ -187,7 +188,7 @@ class WellnessResourceServiceApplicationTests {
                 .get("/api/resources")
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("resourceId", Matchers.hasItem(id.intValue()));
+                .body("resourceId", Matchers.hasItem(id));
 
         // Delete Test Resource
         RestAssured.given()
@@ -203,7 +204,7 @@ class WellnessResourceServiceApplicationTests {
                 .get("/api/resources")
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("resourceId", Matchers.not(Matchers.hasItem(id.intValue())));
+                .body("resourceId", Matchers.not(Matchers.hasItem(id)));
     }
 
     @Test

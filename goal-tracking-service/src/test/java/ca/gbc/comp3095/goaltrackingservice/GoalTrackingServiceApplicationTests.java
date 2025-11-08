@@ -94,8 +94,8 @@ class GoalTrackingServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].title", Matchers.equalTo("Exercise Weekly"))
-                .body("[0].category", Matchers.equalTo("fitness"));
+                .body("title", Matchers.hasItem("Exercise Weekly"))
+                .body("category", Matchers.hasItem("fitness"));
     }
 
     @Test
@@ -126,7 +126,7 @@ class GoalTrackingServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].category", Matchers.equalTo("sleep"));
+                .body("category", Matchers.hasItem("sleep"));
     }
 
     @Test

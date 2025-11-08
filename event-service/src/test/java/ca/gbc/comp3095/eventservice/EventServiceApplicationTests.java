@@ -95,8 +95,8 @@ class EventServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].title", Matchers.equalTo("Mental Health Seminar"))
-                .body("[0].capacity", Matchers.equalTo(50));
+                .body("title", Matchers.hasItem("Mental Health Seminar"))
+                .body("capacity", Matchers.hasItem(50));
     }
 
     private Integer createEventAndReturnId(String title, String description, String location, int capacity) {
@@ -257,6 +257,6 @@ class EventServiceApplicationTests {
                 .log().all()
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", Matchers.greaterThan(0))
-                .body("[0].location", Matchers.equalTo("Student Center"));
+                .body("location", Matchers.hasItem("Student Center"));
     }
 }

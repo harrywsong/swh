@@ -63,12 +63,15 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_DATA_REDIS_HOST=redis-wellness
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_CACHE_TYPE=redis
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - postgres
       - redis
     networks:
       - wellness-network
+    # had to look up a way to fix these containers crashing due to boot order
+    restart: unless-stopped
 
   goal-tracking-service:
     image: goal-tracking-service
@@ -85,6 +88,8 @@ services:
       - mongodb
     networks:
       - wellness-network
+    # had to look up a way to fix these containers crashing due to boot order
+    restart: unless-stopped
 
   event-service:
     image: event-service
@@ -104,6 +109,8 @@ services:
       - postgres
     networks:
       - wellness-network
+    # had to look up a way to fix these containers crashing due to boot order
+    restart: unless-stopped
 
   mongo-express:
     image: mongo-express

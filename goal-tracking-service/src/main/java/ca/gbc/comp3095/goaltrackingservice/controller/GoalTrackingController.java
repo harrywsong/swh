@@ -64,4 +64,14 @@ public class GoalTrackingController {
     public void deleteGoal(@PathVariable String id) {
         service.deleteGoal(id);
     }
+
+    @GetMapping("/{id}/suggested-resources")
+    @ResponseStatus(HttpStatus.OK)
+    public String getSuggestedResourcesUrl(@PathVariable String id) {
+        GoalTracking goal = service.getGoalById(id)
+                .orElseThrow(() -> new RuntimeException("Goal not found with id: " + id));
+
+        // Return URL to fetch wellness resources matching this goal's category
+        return "http://wellness-resource-service:8081/api/resources/category/" + goal.getCategory();
+    }
 }

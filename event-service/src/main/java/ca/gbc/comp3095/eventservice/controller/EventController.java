@@ -71,4 +71,14 @@ public class EventController {
     public void deleteEvent(@PathVariable Long id) {
         service.deleteEvent(id);
     }
+
+    @GetMapping("/{id}/related-resources")
+    @ResponseStatus(HttpStatus.OK)
+    public String getRelatedResourcesUrl(@PathVariable Long id) {
+        Event event = service.getEventById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+
+        // Return URL to fetch all wellness resources (events can link to any resources)
+        return "http://wellness-resource-service:8081/api/resources";
+    }
 }

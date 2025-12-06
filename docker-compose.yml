@@ -9,6 +9,48 @@
 
 services:
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak-wellness
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-wellness:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8090
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8090:8080"
+    depends_on:
+      - postgres
+    networks:
+      - wellness-network
+    restart: unless-stopped
+
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "9090:8080"  # ← Changed from "8080:8080"
+    environment:
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/wellness-hub
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/wellness-hub/protocol/openid-connect/certs
+    depends_on:
+      - keycloak
+      - wellness-resource-service
+      - goal-tracking-service
+      - event-service
+    networks:
+      - wellness-network
+    restart: unless-stopped
+
   postgres:
     container_name: postgres-wellness
     image: postgres

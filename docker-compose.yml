@@ -12,7 +12,12 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
     container_name: keycloak-wellness
-    command: start-dev
+    command:
+      - start-dev
+      - --hostname=keycloak-wellness
+      - --hostname-port=8080
+      - --hostname-strict=false
+      - --hostname-strict-backchannel=false
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -20,9 +25,11 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres-wellness:5432/keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: 8090
       KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: keycloak-wellness
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
     ports:
       - "8090:8080"
     depends_on:
@@ -38,10 +45,11 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "9090:8080"  # ← Changed from "8080:8080"
+      - "9090:8080"
     environment:
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/wellness-hub
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/wellness-hub/protocol/openid-connect/certs
+      # IMPORTANT: Change these to use the container name (keycloak-wellness)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak-wellness:8080/realms/wellness-hub
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-wellness:8080/realms/wellness-hub/protocol/openid-connect/certs
     depends_on:
       - keycloak
       - wellness-resource-service

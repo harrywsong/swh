@@ -1,7 +1,9 @@
 package ca.gbc.comp3095.wellnessresourceservice.controller;
 
 import ca.gbc.comp3095.wellnessresourceservice.dto.WellnessResourceRequest;
+import ca.gbc.comp3095.wellnessresourceservice.model.ResourcePopularityTracker;
 import ca.gbc.comp3095.wellnessresourceservice.model.WellnessResource;
+import ca.gbc.comp3095.wellnessresourceservice.repository.ResourcePopularityRepository;
 import ca.gbc.comp3095.wellnessresourceservice.service.WellnessResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import java.util.List;
 public class WellnessResourceController {
 
     private final WellnessResourceService service;
+    private final ResourcePopularityRepository popularityRepository;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -57,5 +60,22 @@ public class WellnessResourceController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResource(@PathVariable Long id) {
         service.deleteResource(id);
+    }
+
+    @GetMapping("/popularity/category/{category}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResourcePopularityTracker getCategoryPopularity(@PathVariable String category) {
+        return popularityRepository.findByCategory(category)
+                .orElse(ResourcePopularityTracker.builder()
+                        .category(category)
+                        .viewCount(0)
+                        .goalCompletionCount(0)
+                        .build());
+    }
+
+    @GetMapping("/popularity/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ResourcePopularityTracker> getAllPopularityStats() {
+        return popularityRepository.findAll();
     }
 }

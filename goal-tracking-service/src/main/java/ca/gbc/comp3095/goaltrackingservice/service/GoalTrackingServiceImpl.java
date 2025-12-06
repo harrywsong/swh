@@ -1,6 +1,7 @@
 package ca.gbc.comp3095.goaltrackingservice.service;
 
 import ca.gbc.comp3095.goaltrackingservice.dto.GoalTrackingRequest;
+import ca.gbc.comp3095.goaltrackingservice.event.GoalCompletedEvent;
 import ca.gbc.comp3095.goaltrackingservice.model.GoalTracking;
 import ca.gbc.comp3095.goaltrackingservice.repository.GoalTrackingRepository;
 import jakarta.transaction.Transactional;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +20,7 @@ import java.util.Optional;
 public class GoalTrackingServiceImpl implements GoalTrackingService {
 
     private final GoalTrackingRepository repository;
+    private final EventPublisher eventPublisher;
 
     @Override
     public List<GoalTracking> getAllGoals() {
@@ -84,7 +87,20 @@ public class GoalTrackingServiceImpl implements GoalTrackingService {
                 .orElseThrow(() -> new RuntimeException("Goal not found with id: " + id));
 
         goal.setStatus("completed");
-        return repository.save(goal);
+        GoalTracking savedGoal = repository.save(goal);
+
+        // Publish Kafka event
+        GoalCompletedEvent event = GoalCompletedEvent.builder()
+                .goalId(savedGoal.getGoalId())
+                .title(savedGoal.getTitle())
+                .category(savedGoal.getCategory())
+                .targetDate(savedGoal.getTargetDate())
+                .completedAt(LocalDateTime.now())
+                .build();
+
+        eventPublisher.publishGoalCompletedEvent(event);
+
+        return savedGoal;
     }
 
     @Override

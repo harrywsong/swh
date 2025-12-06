@@ -11,18 +11,93 @@ spring:
 
     gateway:
       routes:
+        # Swagger UI routes - Order 0 (checked first)
+        # Swagger UI routes for wellness-resource-service
+        - id: wellness-resource-swagger-ui
+          uri: http://wellness-resource-service:8081
+          order: -1
+          predicates:
+            - Path=/api/resources/swagger-ui.html, /api/resources/swagger-ui/**
+          filters:
+            - StripPrefix=2
+        - id: wellness-resource-webjars
+          uri: http://wellness-resource-service:8081
+          order: -1
+          predicates:
+            - Path=/api/resources/webjars/**
+          filters:
+            - StripPrefix=2
+        - id: wellness-resource-api-docs
+          uri: http://wellness-resource-service:8081
+          order: -1
+          predicates:
+            - Path=/api/resources/api-docs, /api/resources/api-docs/**
+          filters:
+            - StripPrefix=2
+
+        # Swagger UI routes for goal-tracking-service
+        - id: goal-tracking-swagger-ui
+          uri: http://goal-tracking-service:8082
+          order: -1
+          predicates:
+            - Path=/api/goals/swagger-ui.html, /api/goals/swagger-ui/**
+          filters:
+            - StripPrefix=2
+        - id: goal-tracking-webjars
+          uri: http://goal-tracking-service:8082
+          order: -1
+          predicates:
+            - Path=/api/goals/webjars/**
+          filters:
+            - StripPrefix=2
+        - id: goal-tracking-api-docs
+          uri: http://goal-tracking-service:8082
+          order: -1
+          predicates:
+            - Path=/api/goals/api-docs, /api/goals/api-docs/**
+          filters:
+            - StripPrefix=2
+
+        # Swagger UI routes for event-service
+        - id: event-swagger-ui
+          uri: http://event-service:8083
+          order: -1
+          predicates:
+            - Path=/api/events/swagger-ui.html, /api/events/swagger-ui/**
+          filters:
+            - StripPrefix=2
+        - id: event-webjars
+          uri: http://event-service:8083
+          order: -1
+          predicates:
+            - Path=/api/events/webjars/**
+          filters:
+            - StripPrefix=2
+        - id: event-api-docs
+          uri: http://event-service:8083
+          order: -1
+          predicates:
+            - Path=/api/events/api-docs, /api/events/api-docs/**
+          filters:
+            - StripPrefix=2
+
+        # General API routes - Order 1 (checked after Swagger routes)
+        # These routes will only match if Swagger routes (order -1) don't match
         - id: wellness-resource-service
           uri: http://wellness-resource-service:8081
+          order: 1
           predicates:
             - Path=/api/resources/**
 
         - id: goal-tracking-service
           uri: http://goal-tracking-service:8082
+          order: 1
           predicates:
             - Path=/api/goals/**
 
         - id: event-service
           uri: http://event-service:8083
+          order: 1
           predicates:
             - Path=/api/events/**
   security:

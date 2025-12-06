@@ -30,6 +30,11 @@ public class SecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        // Allow Swagger UI access through gateway for all services
+                        .pathMatchers("/api/resources/swagger-ui.html", "/api/resources/swagger-ui/**", "/api/resources/api-docs/**", "/api/resources/v3/api-docs/**").permitAll()
+                        .pathMatchers("/api/goals/swagger-ui.html", "/api/goals/swagger-ui/**", "/api/goals/api-docs/**", "/api/goals/v3/api-docs/**").permitAll()
+                        .pathMatchers("/api/events/swagger-ui.html", "/api/events/swagger-ui/**", "/api/events/api-docs/**", "/api/events/v3/api-docs/**").permitAll()
+                        .pathMatchers("/api/resources/webjars/**", "/api/goals/webjars/**", "/api/events/webjars/**").permitAll()
 
                         .pathMatchers("/api/goals/**").hasRole("student")
                         .pathMatchers("/api/events/*/register").hasRole("student")

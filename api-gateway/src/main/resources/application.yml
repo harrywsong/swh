@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8080
 
 spring:
@@ -7,7 +7,7 @@ spring:
 
   cloud:
     compatibility-verifier:
-      enabled: false  # Disable Spring Cloud version check
+      enabled: false
 
     gateway:
       routes:
@@ -26,15 +26,13 @@ spring:
           predicates:
             - Path=/api/events/**
 
-      default-filters:
-        - TokenRelay
-
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/wellness-hub
-          jwk-set-uri: http://keycloak:8080/realms/wellness-hub/protocol/openid-connect/certs
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8090/realms/wellness-hub}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8090/realms/wellness-hub/protocol/openid-connect/certs}
+
 
 management:
   endpoints:
@@ -49,3 +47,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.security: DEBUG
+    org.springframework.web.reactive: DEBUG

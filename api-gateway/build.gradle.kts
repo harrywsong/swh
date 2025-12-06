@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     id("java")
     id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
@@ -24,12 +24,21 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.cloud:spring-cloud-starter-security")  // ← ADD THIS
-
-    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}"))
+    
+    // Required for TokenRelay filter
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    
+    // Add Springdoc OpenAPI for Swagger documentation
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+    }
 }
 
 tasks.test {

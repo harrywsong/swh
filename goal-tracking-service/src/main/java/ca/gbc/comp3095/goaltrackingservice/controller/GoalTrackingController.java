@@ -1,6 +1,8 @@
 package ca.gbc.comp3095.goaltrackingservice.controller;
 
+import ca.gbc.comp3095.goaltrackingservice.client.WellnessResourceClient;
 import ca.gbc.comp3095.goaltrackingservice.dto.GoalTrackingRequest;
+import ca.gbc.comp3095.goaltrackingservice.dto.WellnessResource;
 import ca.gbc.comp3095.goaltrackingservice.model.GoalTracking;
 import ca.gbc.comp3095.goaltrackingservice.service.GoalTrackingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +23,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/goals")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Goal Tracking", description = "APIs for managing personal wellness goals")
 public class GoalTrackingController {
 
     private final GoalTrackingService service;
+    private final WellnessResourceClient wellnessResourceClient;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -169,19 +174,31 @@ public class GoalTrackingController {
     @GetMapping("/{id}/suggested-resources")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get suggested resources URL for a goal",
-            description = "Returns a URL to fetch wellness resources that match the goal's category."
+            summary = "Get suggested resources for a goal",
+            description = "Returns wellness resources that match the goal's category. Uses circuit breaker for fault tolerance."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "URL retrieved successfully"),
+            @ApiResponse(responseCode = "200", description = "Resources retrieved successfully (may be empty if service is down)",
+                    content = @Content(schema = @Schema(implementation = WellnessResource.class))),
             @ApiResponse(responseCode = "404", description = "Goal not found")
     })
-    public String getSuggestedResourcesUrl(
+    public List<WellnessResource> getSuggestedResources(
             @Parameter(description = "Goal ID", required = true) @PathVariable String id) {
         GoalTracking goal = service.getGoalById(id)
                 .orElseThrow(() -> new RuntimeException("Goal not found with id: " + id));
 
-        // Return URL to fetch wellness resources matching this goal's category
-        return "http://wellness-resource-service:8081/api/resources/category/" + goal.getCategory();
+        // If goal has no category, return empty list
+        if (goal.getCategory() == null || goal.getCategory().isEmpty()) {
+            return List.of();
+        }
+
+        // Call wellness-resource-service with circuit breaker protection
+        try {
+            return wellnessResourceClient.getResourcesByCategory(goal.getCategory());
+        } catch (Exception e) {
+            // If circuit breaker fallback doesn't work, return empty list as last resort
+            log.warn("Exception calling wellness-resource-service, returning empty list: {}", e.getMessage());
+            return List.of();
+        }
     }
 }

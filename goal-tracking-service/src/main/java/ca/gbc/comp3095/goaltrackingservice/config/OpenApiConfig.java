@@ -1,7 +1,6 @@
 package ca.gbc.comp3095.goaltrackingservice.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -24,9 +23,6 @@ public class OpenApiConfig {
                                 "Students can create, update, and track their wellness goals. When a goal is completed, " +
                                 "an event is published to Kafka to notify other services for recommendations.")
                         .version("1.0.0")
-                        .contact(new Contact()
-                                .name("GBC Wellness Hub Team")
-                                .email("support@gbc-wellness.com"))
                         .license(new License()
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))

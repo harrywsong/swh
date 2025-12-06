@@ -1,6 +1,10 @@
 package ca.gbc.comp3095.eventservice.controller;
 
+import ca.gbc.comp3095.eventservice.client.GoalTrackingClient;
+import ca.gbc.comp3095.eventservice.client.WellnessResourceClient;
 import ca.gbc.comp3095.eventservice.dto.EventRequest;
+import ca.gbc.comp3095.eventservice.dto.GoalTracking;
+import ca.gbc.comp3095.eventservice.dto.WellnessResource;
 import ca.gbc.comp3095.eventservice.model.Event;
 import ca.gbc.comp3095.eventservice.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +30,8 @@ import java.util.List;
 public class EventController {
 
     private final EventService service;
+    private final WellnessResourceClient wellnessResourceClient;
+    private final GoalTrackingClient goalTrackingClient;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -189,18 +195,57 @@ public class EventController {
     @GetMapping("/{id}/related-resources")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get related resources URL for an event",
-            description = "Returns a URL to fetch wellness resources related to an event."
+            summary = "Get related resources for an event",
+            description = "Returns wellness resources related to an event. Uses circuit breaker for fault tolerance."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "URL retrieved successfully"),
+            @ApiResponse(responseCode = "200", description = "Resources retrieved successfully (may be empty if service is down)",
+                    content = @Content(schema = @Schema(implementation = WellnessResource.class))),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public String getRelatedResourcesUrl(
+    public List<WellnessResource> getRelatedResources(
             @Parameter(description = "Event ID", required = true) @PathVariable Long id) {
         Event event = service.getEventById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
 
-        return "http://wellness-resource-service:8081/api/resources";
+        // Call wellness-resource-service with circuit breaker protection
+        return wellnessResourceClient.getAllResources();
+    }
+
+    @GetMapping("/{id}/related-goals")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Get related goals for an event",
+            description = "Returns goals that match the event category. Uses circuit breaker for fault tolerance."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Goals retrieved successfully (may be empty if service is down)",
+                    content = @Content(schema = @Schema(implementation = GoalTracking.class))),
+            @ApiResponse(responseCode = "404", description = "Event not found")
+    })
+    public List<GoalTracking> getRelatedGoals(
+            @Parameter(description = "Event ID", required = true) @PathVariable Long id) {
+        Event event = service.getEventById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+
+        // Extract category from event (assuming event has a category field or derive from title/description)
+        // For now, we'll use a default category or extract from event title
+        String category = extractCategoryFromEvent(event);
+        
+        // Call goal-tracking-service with circuit breaker protection
+        return goalTrackingClient.getGoalsByCategory(category);
+    }
+
+    private String extractCategoryFromEvent(Event event) {
+        // Simple extraction logic - in a real scenario, events might have a category field
+        // For now, we'll use a default or extract from title
+        if (event.getTitle() != null && event.getTitle().toLowerCase().contains("fitness")) {
+            return "Fitness";
+        } else if (event.getTitle() != null && event.getTitle().toLowerCase().contains("mental")) {
+            return "Mental Health";
+        } else if (event.getTitle() != null && event.getTitle().toLowerCase().contains("nutrition")) {
+            return "Nutrition";
+        }
+        return "General";
     }
 }

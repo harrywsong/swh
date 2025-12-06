@@ -38,7 +38,7 @@ public class GoalTrackingServiceImpl implements GoalTrackingService {
     public List<GoalTracking> getGoalsByCategory(String category) {
         log.info("Fetching goals for category: {}", category);
         return repository.findAll().stream()
-                .filter(goal -> goal.getCategory().equalsIgnoreCase(category))
+                .filter(goal -> goal.getCategory() != null && goal.getCategory().equalsIgnoreCase(category))
                 .toList();
     }
 
@@ -46,7 +46,7 @@ public class GoalTrackingServiceImpl implements GoalTrackingService {
     public List<GoalTracking> getGoalsByStatus(String status) {
         log.info("Fetching goals with status: {}", status);
         return repository.findAll().stream()
-                .filter(goal -> goal.getStatus().equalsIgnoreCase(status))
+                .filter(goal -> goal.getStatus() != null && goal.getStatus().equalsIgnoreCase(status))
                 .toList();
     }
 

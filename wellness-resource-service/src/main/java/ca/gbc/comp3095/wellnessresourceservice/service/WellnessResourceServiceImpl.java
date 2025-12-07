@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,7 +43,7 @@ public class WellnessResourceServiceImpl implements WellnessResourceService {
         log.info("Fetching resources for category: {} from database", category);
         return repository.findAll().stream()
                 .filter(resource -> resource.getCategory().equalsIgnoreCase(category))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -50,7 +51,7 @@ public class WellnessResourceServiceImpl implements WellnessResourceService {
         log.info("Searching resources with keyword: {}", keyword);
         return repository.findAll().stream()
                 .filter(resource -> resource.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override

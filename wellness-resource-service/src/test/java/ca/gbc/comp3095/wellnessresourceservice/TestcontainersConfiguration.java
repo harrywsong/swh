@@ -23,10 +23,4 @@ class TestcontainersConfiguration {
         return new GenericContainer<>(DockerImageName.parse("redis:latest"))
                 .withExposedPorts(6379);
     }
-
-    @Bean
-    @ServiceConnection
-    KafkaContainer kafkaContainer() {
-        return new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
-    }
 }

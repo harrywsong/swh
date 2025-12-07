@@ -97,33 +97,42 @@ services:
     networks:
       - wellness-network
 
-  # Kafka & Zookeeper
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper-wellness
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    networks:
-      - wellness-network
-
+  # Kafka (KRaft mode - no Zookeeper required)
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-wellness
-    depends_on:
-      - zookeeper
     ports:
       - "9092:9092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper-wellness:2181
+      # KRaft mode configuration
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-wellness:29093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-wellness:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Topic configuration
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # Log configuration
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    command:
+      - sh
+      - -c
+      - |
+        # Format storage if not already formatted
+        if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+          kafka-storage format -t $${CLUSTER_ID} -c /etc/kafka/kafka.properties --ignore-formatted || true
+        fi
+        # Start Kafka using Confluent's entrypoint
+        exec /etc/confluent/docker/run
+    volumes:
+      - kafka-data:/var/lib/kafka/data
     networks:
       - wellness-network
 
@@ -242,6 +251,8 @@ services:
 
 volumes:
   mongo-db:
+    driver: local
+  kafka-data:
     driver: local
 
 networks:

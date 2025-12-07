@@ -1,3 +1,6 @@
 rootProject.name = 'student-wellness-hub'
 
 include 'api-gateway'
+include 'wellness-resource-service'
+include 'goal-tracking-service'
+include 'event-service'

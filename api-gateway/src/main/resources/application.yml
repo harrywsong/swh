@@ -11,7 +11,6 @@ spring:
 
     gateway:
       routes:
-        # Swagger UI routes - Order 0 (checked first)
         # Swagger UI routes for wellness-resource-service
         - id: wellness-resource-swagger-ui
           uri: http://wellness-resource-service:8081

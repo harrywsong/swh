@@ -1,5 +1,6 @@
 package ca.gbc.comp3095.apigateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -8,7 +9,11 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -22,6 +27,9 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwkSetUri;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -46,10 +54,31 @@ public class SecurityConfig {
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor()))
+                        .jwt(jwt -> jwt
+                                .jwtDecoder(jwtDecoder())
+                                .jwtAuthenticationConverter(grantedAuthoritiesExtractor())
+                        )
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public ReactiveJwtDecoder jwtDecoder() {
+        // Use container name for JWK set (reachable from Docker network)
+        // But accept tokens with localhost:8090 as issuer (from browser)
+        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        // Accept issuer with wellness-hub realm regardless of host/port
+        decoder.setJwtValidator(jwt -> {
+            String issuer = jwt.getIssuer().toString();
+            if (issuer.contains("/realms/wellness-hub")) {
+                return OAuth2TokenValidatorResult.success();
+            }
+            return OAuth2TokenValidatorResult.failure(
+                new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", 
+                    "Invalid issuer: " + issuer, null));
+        });
+        return decoder;
     }
 
     private Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() {

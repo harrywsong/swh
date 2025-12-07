@@ -14,8 +14,6 @@ services:
     container_name: keycloak-wellness
     command:
       - start-dev
-      - --hostname=keycloak-wellness
-      - --hostname-port=8080
       - --hostname-strict=false
       - --hostname-strict-backchannel=false
     environment:
@@ -26,10 +24,11 @@ services:
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME: keycloak-wellness
-      KC_HOSTNAME_PORT: 8080
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+      # Configure frontend URL to match what tokens will use
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8090
     ports:
       - "8090:8080"
     depends_on:
@@ -47,7 +46,9 @@ services:
     ports:
       - "9090:8080"
     environment:
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak-wellness:8080/realms/wellness-hub
+      # Issuer URI must match what Keycloak puts in JWT tokens (localhost:8090 from browser)
+      # JWK Set URI can use container name for internal Docker network access
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8090/realms/wellness-hub
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-wellness:8080/realms/wellness-hub/protocol/openid-connect/certs
     depends_on:
       - keycloak

@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8080
 
 spring:
@@ -104,7 +104,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak-wellness:8080/realms/wellness-hub}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8090/realms/wellness-hub}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak-wellness:8080/realms/wellness-hub/protocol/openid-connect/certs}
 management:
   endpoints:
